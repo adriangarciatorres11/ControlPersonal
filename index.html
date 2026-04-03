@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>PersonalPro</title>
+<title>Personal RH</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -334,7 +334,7 @@ tbody tr:hover .row-actions{opacity:1;}
 <div class="circuit-bg"><svg viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><rect width="1400" height="900" fill="url(#grid)"/></svg></div>
 <div class="setup-box">
   <div class="setup-step">Configuración inicial — Paso único</div>
-  <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:var(--accent);margin-bottom:4px;">PersonalPro</div>
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:var(--accent);margin-bottom:4px;">Personal RH</div>
   <div style="font-size:13px;color:var(--muted);margin-bottom:26px;">Define las credenciales del Administrador. Solo se hará una vez.</div>
   <div id="setup-err" class="login-err"></div>
   <div class="form-group"><label class="required">Usuario Administrador</label><input id="su-user" type="text" placeholder="Nombre de usuario"/></div>
@@ -349,7 +349,7 @@ tbody tr:hover .row-actions{opacity:1;}
 <div id="login-screen">
 <div class="circuit-bg"><svg viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><rect width="1400" height="900" fill="url(#grid)"/></svg></div>
 <div class="login-box">
-  <div class="login-logo">PersonalPro</div>
+  <div class="login-logo">Personal RH</div>
   <div class="login-sub">Sistema de control de personal<br><span style="font-size:11px;color:var(--muted2)">Primer acceso: <code style="background:var(--bg2);padding:1px 5px;border-radius:3px">admin / admin</code></span></div>
   <div id="login-err" class="login-err">Usuario o contraseña incorrectos.</div>
   <div class="form-group"><label>Usuario</label><input id="l-user" type="text" placeholder="Tu usuario" onkeydown="if(event.key==='Enter')doLogin()"/></div>
@@ -379,7 +379,7 @@ tbody tr:hover .row-actions{opacity:1;}
 
 <aside class="sidebar">
   <div class="logo">
-    <div class="logo-mark">PersonalPro</div>
+    <div class="logo-mark">Personal RH</div>
     <div class="logo-sub">Control de personal</div>
   </div>
   <nav class="nav">
@@ -767,7 +767,7 @@ tbody tr:hover .row-actions{opacity:1;}
 // ─────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────
-const STORAGE_KEY = 'personalpro_v3';
+const STORAGE_KEY = 'personalrh_v3';
 
 function defaultState(){
   return {
