@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>PersonalPro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ── DESIGN TOKENS ─────────────────────────────────── */
+:root{
+  --bg:#f0f4f8;
+  --bg2:#e8eef5;
+  --surface:#ffffff;
+  --surface2:#f5f8fb;
+  --border:#d0dae8;
+  --border2:#b8c8dc;
+  --accent:#0066cc;
+  --accent2:#00a878;
+  --accent3:#e63946;
+  --warn:#f4a261;
+  --text:#0d1b2a;
+  --muted:#5a7085;
+  --muted2:#8fa5bb;
+  --radius:10px;
+  --rsm:6px;
+  --circuit:#0066cc18;
+  --circuit2:#00a87820;
+  --shadow:0 2px 12px rgba(0,102,204,0.10);
+  --shadow2:0 4px 24px rgba(0,102,204,0.16);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:14px;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+code,pre,.mono{font-family:'IBM Plex Mono',monospace;}
+
+/* ── CIRCUIT BACKGROUND ───────────────────────────── */
+.circuit-bg{
+  position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;
+}
+.circuit-bg svg{width:100%;height:100%;opacity:0.45;}
+
+/* ── SCROLLBAR ────────────────────────────────────── */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+/* ── UTILS ────────────────────────────────────────── */
+.hidden{display:none!important;}
+.flex{display:flex;}
+.items-center{align-items:center;}
+.gap8{gap:8px;}
+.gap12{gap:12px;}
+.gap16{gap:16px;}
+.ml-auto{margin-left:auto;}
+.w100{width:100%;}
+
+/* ── BUTTONS ──────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:0 16px;height:34px;border-radius:var(--rsm);font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;white-space:nowrap;text-decoration:none;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:#0052a3;}
+.btn-success{background:var(--accent2);color:#fff;}
+.btn-success:hover{background:#008862;}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border2);}
+.btn-ghost:hover{background:var(--bg2);}
+.btn-danger{background:transparent;color:var(--accent3);border:1px solid rgba(230,57,70,0.3);}
+.btn-danger:hover{background:rgba(230,57,70,0.08);}
+.btn-sm{height:28px;padding:0 10px;font-size:12px;}
+.btn-icon{width:30px;height:30px;padding:0;justify-content:center;background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-icon:hover{border-color:var(--border2);color:var(--text);}
+.btn-icon.del:hover{border-color:rgba(230,57,70,0.4);color:var(--accent3);background:rgba(230,57,70,0.06);}
+.btn svg{width:14px;height:14px;flex-shrink:0;}
+
+/* ── BADGES ───────────────────────────────────────── */
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.3px;}
+.badge-active{background:rgba(0,168,120,.12);color:#006644;}
+.badge-leave{background:rgba(244,162,97,.15);color:#a05000;}
+.badge-inactive{background:rgba(230,57,70,.1);color:#a0001a;}
+.badge-libre{background:rgba(0,102,204,.1);color:#0044aa;}
+.badge-cubierta{background:rgba(90,112,133,.1);color:var(--muted);}
+.badge-consulta{background:rgba(0,102,204,.1);color:#0044aa;}
+.badge-grabacion{background:rgba(0,168,120,.12);color:#006644;}
+.badge-admin{background:rgba(230,57,70,.1);color:#a0001a;}
+
+/* ── AVATAR ───────────────────────────────────────── */
+.avatar{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-family:'IBM Plex Mono',monospace;font-weight:600;flex-shrink:0;}
+.av-sm{width:28px;height:28px;font-size:10px;}
+.av-md{width:36px;height:36px;font-size:13px;}
+.av-lg{width:48px;height:48px;font-size:17px;}
+.av0{background:#ddeeff;color:#003388;}
+.av1{background:#d5f5ec;color:#005533;}
+.av2{background:#fff3e0;color:#7a3800;}
+.av3{background:#fde8ea;color:#8a0010;}
+.av4{background:#ede8ff;color:#3a0080;}
+
+/* ── FORMS ────────────────────────────────────────── */
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.form-group label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.form-group input,.form-group select,.form-group textarea{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;padding:0 12px;height:38px;outline:none;transition:border-color .15s;width:100%;}
+.form-group textarea{height:auto;padding:10px 12px;resize:vertical;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);}
+.form-group select option{background:var(--surface);}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-3col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.required::after{content:' *';color:var(--accent3);}
+
+/* ── TABLES ───────────────────────────────────────── */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+table{width:100%;border-collapse:collapse;}
+thead tr{border-bottom:1.5px solid var(--border);}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;cursor:pointer;user-select:none;background:var(--surface2);}
+th:hover{color:var(--text);}
+td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border);color:var(--text);}
+tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:#f7fafd;}
+.row-actions{display:flex;gap:4px;opacity:0;transition:opacity .12s;}
+tbody tr:hover .row-actions{opacity:1;}
+
+/* ── CARDS ────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);}
+.card-pad{padding:20px;}
+
+/* ── STAT CARDS ───────────────────────────────────── */
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;box-shadow:var(--shadow);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.stat-c-blue::before{background:var(--accent);}
+.stat-c-green::before{background:var(--accent2);}
+.stat-c-warn::before{background:var(--warn);}
+.stat-c-red::before{background:var(--accent3);}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;}
+.stat-value{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600;line-height:1;}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:5px;}
+
+/* ── SECTION ──────────────────────────────────────── */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title{font-size:14px;font-weight:600;color:var(--text);}
+
+/* ── MODAL ────────────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(13,27,42,.55);backdrop-filter:blur(3px);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px;width:100%;max-width:560px;box-shadow:var(--shadow2);animation:slideUp .2s ease;max-height:90vh;overflow-y:auto;}
+.modal-sm{max-width:400px;}
+.modal-lg{max-width:720px;}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
+.modal-title{font-size:16px;font-weight:600;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:18px;border-top:1px solid var(--border);}
+
+/* ── TOAST ────────────────────────────────────────── */
+.toast{position:fixed;bottom:22px;right:22px;padding:11px 18px;border-radius:var(--rsm);font-size:13px;font-weight:500;z-index:999;transform:translateY(70px);opacity:0;transition:all .28s;pointer-events:none;box-shadow:var(--shadow2);}
+.toast.ok{background:var(--accent2);color:#fff;}
+.toast.err{background:var(--accent3);color:#fff;}
+.toast.info{background:var(--accent);color:#fff;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* ── LOGIN SCREEN ─────────────────────────────────── */
+#login-screen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center;}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;width:100%;max-width:400px;box-shadow:var(--shadow2);position:relative;z-index:1;}
+.login-logo{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--accent);margin-bottom:4px;}
+.login-sub{font-size:12px;color:var(--muted);margin-bottom:28px;}
+.login-err{background:rgba(230,57,70,.08);border:1px solid rgba(230,57,70,.25);border-radius:var(--rsm);padding:10px 14px;font-size:13px;color:var(--accent3);margin-bottom:14px;display:none;}
+
+/* ── SETUP SCREEN ─────────────────────────────────── */
+#setup-screen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center;}
+.setup-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;width:100%;max-width:440px;box-shadow:var(--shadow2);}
+.setup-step{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+
+/* ── APP SHELL ────────────────────────────────────── */
+#app{display:none;min-height:100vh;flex-direction:column;}
+.sidebar{width:220px;min-height:100vh;background:var(--surface);border-right:1.5px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:10;box-shadow:2px 0 12px rgba(0,102,204,.07);}
+.logo{padding:20px 18px 16px;border-bottom:1px solid var(--border);}
+.logo-mark{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;color:var(--accent);}
+.logo-sub{font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+.nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-section{font-size:10px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.7px;padding:10px 10px 4px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--rsm);font-size:13px;color:var(--muted);cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:'IBM Plex Sans',sans-serif;}
+.nav-item:hover{color:var(--text);background:var(--bg2);}
+.nav-item.active{color:var(--accent);background:rgba(0,102,204,.09);font-weight:500;}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;}
+.sidebar-footer{padding:12px 10px;border-top:1px solid var(--border);}
+.user-pill{display:flex;align-items:center;gap:9px;padding:8px 10px;background:var(--bg2);border-radius:var(--rsm);}
+.user-name{font-size:13px;font-weight:500;}
+.user-role{font-size:11px;color:var(--muted);}
+
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{height:56px;background:var(--surface);border-bottom:1.5px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:9;box-shadow:0 2px 8px rgba(0,102,204,.06);}
+.topbar-title{font-size:15px;font-weight:600;flex:1;}
+.search-bar{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:999px;padding:0 14px;height:34px;width:200px;}
+.search-bar input{background:none;border:none;outline:none;font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:var(--text);width:100%;}
+.search-bar input::placeholder{color:var(--muted2);}
+
+.content{padding:22px 24px;flex:1;position:relative;z-index:1;}
+.panel{display:none;}
+.panel.active{display:block;animation:fadeIn .18s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── STATS ROW ────────────────────────────────────── */
+.stats-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px;}
+
+/* ── TOOLBAR ──────────────────────────────────────── */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.filter-sel{background:var(--surface);border:1px solid var(--border);border-radius:var(--rsm);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:0 12px;height:34px;cursor:pointer;outline:none;}
+.filter-sel:hover{border-color:var(--border2);}
+.info-chip{font-size:12px;color:var(--muted);}
+
+/* ── VIEW TOGGLE ──────────────────────────────────── */
+.view-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--rsm);overflow:hidden;}
+.view-btn{padding:0 12px;height:34px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:12px;font-family:'IBM Plex Sans',sans-serif;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.view-btn.active{background:var(--bg2);color:var(--text);}
+
+/* ── GROUP ROWS ───────────────────────────────────── */
+.grp-row td{background:var(--bg2);padding:7px 14px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border);cursor:pointer;}
+.grp-row:hover td{filter:brightness(.97);}
+.grp-inner{display:flex;align-items:center;gap:8px;}
+.grp-chev{display:inline-block;transition:transform .2s;font-style:normal;font-size:10px;}
+.grp-chev.col{transform:rotate(-90deg);}
+.grp-count{background:var(--border2);color:var(--text);border-radius:999px;font-size:10px;font-weight:600;padding:1px 7px;}
+
+/* ── EMP CARDS ────────────────────────────────────── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+.emp-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:border-color .15s;box-shadow:var(--shadow);}
+.emp-card:hover{border-color:var(--border2);}
+.emp-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.emp-card-actions{display:flex;gap:4px;opacity:0;transition:opacity .12s;}
+.emp-card:hover .emp-card-actions{opacity:1;}
+.emp-card-name{font-weight:600;font-size:14px;margin-bottom:2px;}
+.emp-card-role{font-size:12px;color:var(--muted);margin-bottom:8px;}
+.emp-card-dept{font-size:11px;background:var(--bg2);border-radius:999px;padding:2px 9px;display:inline-block;margin-bottom:8px;color:var(--muted);}
+.emp-card-footer{border-top:1px solid var(--border);padding-top:8px;display:flex;align-items:center;justify-content:space-between;}
+
+/* ── VAC CARDS ────────────────────────────────────── */
+.vac-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
+.vac-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
+.vac-card.libre{border-left:3px solid var(--accent);}
+.vac-card.cubierta{border-left:3px solid var(--border2);}
+.vac-card:hover{border-top-color:var(--border2);}
+.vac-dept{font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.vac-role{font-size:15px;font-weight:600;margin-bottom:6px;}
+.vac-cat{font-size:12px;color:var(--muted);}
+.vac-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;}
+
+/* ── DEPT CARDS ───────────────────────────────────── */
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:22px;}
+.dept-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow);position:relative;}
+.dept-card:hover{border-color:var(--border2);box-shadow:var(--shadow2);}
+.dept-card-actions{position:absolute;top:10px;right:10px;display:flex;gap:4px;opacity:0;transition:opacity .12s;}
+.dept-card:hover .dept-card-actions{opacity:1;}
+.dept-card-name{font-size:14px;font-weight:600;margin-bottom:6px;}
+.dept-card-val{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;line-height:1;margin-bottom:4px;}
+.dept-card-sub{font-size:11px;color:var(--muted);}
+
+/* ── VACANTES BY DEPT ─────────────────────────────── */
+.vac-dept-section{margin-bottom:24px;}
+.vac-dept-hdr{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm) var(--rsm) 0 0;border-bottom:none;}
+.vac-dept-hdr-title{font-weight:600;font-size:13.5px;}
+.vac-dept-body{border:1px solid var(--border);border-radius:0 0 var(--rsm) var(--rsm);overflow:hidden;}
+
+/* ── PROGRESS BAR ─────────────────────────────────── */
+.progress-bar{height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-top:6px;}
+.progress-fill{height:100%;border-radius:3px;transition:width .3s;}
+
+/* ── USERS PANEL ──────────────────────────────────── */
+.role-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;}
+
+/* ── EXCEL UPLOAD ─────────────────────────────────── */
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:32px 20px;text-align:center;cursor:pointer;transition:all .15s;}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(0,102,204,.04);}
+.upload-zone-icon{font-size:32px;margin-bottom:8px;opacity:.5;}
+.upload-zone p{font-size:13px;color:var(--muted);}
+.upload-zone strong{color:var(--accent);}
+
+/* ── TABS ─────────────────────────────────────────── */
+.tabs{display:flex;border-bottom:1.5px solid var(--border);margin-bottom:18px;}
+.tab-btn{padding:8px 16px;font-size:13px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:'IBM Plex Sans',sans-serif;margin-bottom:-1.5px;transition:all .15s;}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500;}
+.tab-btn:hover{color:var(--text);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* ── INLINE EDIT ──────────────────────────────────── */
+.editable{cursor:pointer;border-bottom:1px dashed var(--border2);padding-bottom:1px;}
+.editable:hover{border-bottom-color:var(--accent);color:var(--accent);}
+
+/* ── DASHBOARD WIDGETS ────────────────────────────── */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+
+/* ── EMPTY STATE ──────────────────────────────────── */
+.empty{text-align:center;padding:44px 20px;color:var(--muted);font-size:13px;}
+.empty-icon{font-size:28px;margin-bottom:10px;opacity:.4;}
+.empty-row td{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+</style>
+</head>
+<body>
+
+<!-- CIRCUIT BACKGROUND -->
+<div class="circuit-bg">
+<svg viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0066cc" stroke-width="0.4" opacity="0.18"/>
+    </pattern>
+  </defs>
+  <rect width="1400" height="900" fill="url(#grid)"/>
+  <!-- Horizontal traces -->
+  <path d="M0,120 H200 L240,160 H500 L540,120 H800" stroke="#0066cc" stroke-width="1.5" fill="none" opacity="0.25"/>
+  <path d="M0,300 H100 L140,340 H400" stroke="#00a878" stroke-width="1.5" fill="none" opacity="0.2"/>
+  <path d="M600,0 V100 L640,140 V350 L600,390 V550" stroke="#0066cc" stroke-width="1" fill="none" opacity="0.18"/>
+  <path d="M900,200 H1100 L1140,240 H1400" stroke="#0066cc" stroke-width="1.5" fill="none" opacity="0.22"/>
+  <path d="M1000,0 V200 L1040,240 V400" stroke="#00a878" stroke-width="1" fill="none" opacity="0.15"/>
+  <!-- Nodes -->
+  <circle cx="200" cy="120" r="4" fill="#0066cc" opacity="0.3"/>
+  <circle cx="540" cy="120" r="4" fill="#0066cc" opacity="0.3"/>
+  <circle cx="100" cy="300" r="3" fill="#00a878" opacity="0.28"/>
+  <circle cx="600" cy="390" r="4" fill="#0066cc" opacity="0.25"/>
+  <circle cx="1100" cy="200" r="4" fill="#0066cc" opacity="0.28"/>
+  <circle cx="1040" cy="240" r="3" fill="#00a878" opacity="0.22"/>
+  <!-- Chips -->
+  <rect x="460" y="100" width="60" height="40" rx="3" fill="none" stroke="#0066cc" stroke-width="1" opacity="0.2"/>
+  <rect x="1140" y="220" width="50" height="36" rx="3" fill="none" stroke="#0066cc" stroke-width="1" opacity="0.2"/>
+  <rect x="980" y="180" width="44" height="32" rx="3" fill="none" stroke="#00a878" stroke-width="1" opacity="0.18"/>
+  <!-- More traces bottom -->
+  <path d="M0,700 H150 L190,660 H500 L540,700 H900" stroke="#0066cc" stroke-width="1" fill="none" opacity="0.15"/>
+  <path d="M1200,400 V600 L1240,640 V900" stroke="#00a878" stroke-width="1" fill="none" opacity="0.14"/>
+  <circle cx="150" cy="700" r="3" fill="#0066cc" opacity="0.2"/>
+  <circle cx="540" cy="700" r="3" fill="#0066cc" opacity="0.2"/>
+  <circle cx="1200" cy="600" r="3" fill="#00a878" opacity="0.18"/>
+</svg>
+</div>
+
+<!-- ═══════════════ SETUP SCREEN ═══════════════ -->
+<div id="setup-screen" class="hidden">
+<div class="circuit-bg"><svg viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><rect width="1400" height="900" fill="url(#grid)"/></svg></div>
+<div class="setup-box">
+  <div class="setup-step">Configuración inicial — Paso único</div>
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:var(--accent);margin-bottom:4px;">PersonalPro</div>
+  <div style="font-size:13px;color:var(--muted);margin-bottom:26px;">Define las credenciales del Administrador. Solo se hará una vez.</div>
+  <div id="setup-err" class="login-err"></div>
+  <div class="form-group"><label class="required">Usuario Administrador</label><input id="su-user" type="text" placeholder="Nombre de usuario"/></div>
+  <div class="form-group"><label class="required">Contraseña</label><input id="su-pass" type="password" placeholder="Mínimo 6 caracteres"/></div>
+  <div class="form-group"><label class="required">Confirmar contraseña</label><input id="su-pass2" type="password" placeholder="Repite la contraseña"/></div>
+  <div class="form-group"><label>Nombre para mostrar</label><input id="su-name" type="text" placeholder="Ej: Administrador Principal"/></div>
+  <button class="btn btn-primary w100" style="height:40px;justify-content:center;font-size:14px;" onclick="doSetup()">Crear cuenta y entrar →</button>
+</div>
+</div>
+
+<!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
+<div id="login-screen">
+<div class="circuit-bg"><svg viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><rect width="1400" height="900" fill="url(#grid)"/></svg></div>
+<div class="login-box">
+  <div class="login-logo">PersonalPro</div>
+  <div class="login-sub">Sistema de control de personal<br><span style="font-size:11px;color:var(--muted2)">Primer acceso: <code style="background:var(--bg2);padding:1px 5px;border-radius:3px">admin / admin</code></span></div>
+  <div id="login-err" class="login-err">Usuario o contraseña incorrectos.</div>
+  <div class="form-group"><label>Usuario</label><input id="l-user" type="text" placeholder="Tu usuario" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+  <div class="form-group"><label>Contraseña</label><input id="l-pass" type="password" placeholder="Tu contraseña" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+  <button class="btn btn-primary w100" style="height:40px;justify-content:center;font-size:14px;margin-top:6px;" onclick="doLogin()">Entrar →</button>
+  <div style="margin-top:16px;font-size:11px;color:var(--muted2);text-align:center;">Versión 3.0 · IBM Plex</div>
+</div>
+</div>
+
+<!-- ═══════════════ FIRST ACCESS — CHANGE PASSWORD ═══════════════ -->
+<div id="change-pass-screen" class="hidden" style="position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center;">
+<div class="login-box" style="max-width:420px;">
+  <div style="display:inline-block;background:rgba(0,102,204,.1);border:1px solid rgba(0,102,204,.25);border-radius:var(--rsm);padding:6px 12px;font-size:11px;font-weight:600;color:var(--accent);margin-bottom:16px;text-transform:uppercase;letter-spacing:.5px;">Primer acceso — Configuración inicial</div>
+  <div class="login-logo">Bienvenido, Administrador</div>
+  <div class="login-sub" style="margin-bottom:22px;">Has entrado con las credenciales por defecto <code style="background:var(--bg2);padding:1px 6px;border-radius:3px;font-size:12px">admin / admin</code>. Establece ahora tu usuario y contraseña definitivos.</div>
+  <div id="cp-err" class="login-err"></div>
+  <div class="form-group"><label>Nombre para mostrar</label><input id="cp-name" type="text" placeholder="Ej: Juan Administrador" value="Administrador"/></div>
+  <div class="form-group"><label class="required">Nuevo usuario</label><input id="cp-user" type="text" placeholder="Nombre de usuario" value="admin"/></div>
+  <div class="form-group"><label class="required">Nueva contraseña</label><input id="cp-pass" type="password" placeholder="Mínimo 6 caracteres"/></div>
+  <div class="form-group"><label class="required">Confirmar contraseña</label><input id="cp-pass2" type="password" placeholder="Repite la contraseña" onkeydown="if(event.key==='Enter')doChangePass()"/></div>
+  <button class="btn btn-primary w100" style="height:40px;justify-content:center;font-size:14px;" onclick="doChangePass()">Guardar y entrar →</button>
+</div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="app" style="display:none;min-height:100vh;">
+
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">PersonalPro</div>
+    <div class="logo-sub">Control de personal</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Principal</div>
+    <button class="nav-item active" onclick="go('dashboard')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard
+    </button>
+    <button class="nav-item" onclick="go('empleados')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Empleados
+    </button>
+    <button class="nav-item" onclick="go('vacantes')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Vacantes
+    </button>
+    <button class="nav-item" onclick="go('departamentos')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Departamentos
+    </button>
+    <div class="nav-section" id="nav-admin-section" style="display:none">Administración</div>
+    <button class="nav-item hidden" id="nav-usuarios" onclick="go('usuarios')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Usuarios
+    </button>
+    <button class="nav-item hidden" id="nav-config" onclick="go('config')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configuración
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="avatar av-sm av0" id="sidebar-av">?</div>
+      <div>
+        <div class="user-name" id="sidebar-name">—</div>
+        <div class="user-role" id="sidebar-role">—</div>
+      </div>
+      <button class="btn btn-icon btn-sm" style="margin-left:auto;width:26px;height:26px;" onclick="doLogout()" title="Cerrar sesión">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div class="search-bar">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13" style="color:var(--muted2);flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Buscar empleado..." oninput="handleSearch(this.value)"/>
+    </div>
+    <button class="btn btn-primary" onclick="openNewEmp()" id="btn-new-emp">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo empleado
+    </button>
+  </div>
+
+  <div class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="stats-row" id="dash-stats-row">
+        <div class="stat-card stat-c-blue"><div class="stat-label">Total empleados</div><div class="stat-value" style="color:var(--accent)" id="s-total">0</div><div class="stat-sub">Plantilla registrada</div></div>
+        <div class="stat-card stat-c-green"><div class="stat-label">Activos</div><div class="stat-value" style="color:var(--accent2)" id="s-activos">0</div><div class="stat-sub">En servicio hoy</div></div>
+        <div class="stat-card stat-c-warn"><div class="stat-label">Vacantes libres</div><div class="stat-value" style="color:var(--warn)" id="s-libres">0</div><div class="stat-sub">Plazas sin cubrir</div></div>
+        <div class="stat-card stat-c-red"><div class="stat-label">En permiso</div><div class="stat-value" style="color:var(--accent3)" id="s-permiso">0</div><div class="stat-sub">Ausencias activas</div></div>
+      </div>
+      <div class="dash-grid">
+        <div>
+          <div class="section-hdr"><div class="section-title">Últimas altas</div></div>
+          <div class="table-wrap"><table><thead><tr><th>Empleado</th><th>Dpto.</th><th>Estado</th></tr></thead><tbody id="dash-emps"></tbody></table></div>
+        </div>
+        <div>
+          <div class="section-hdr"><div class="section-title">Vacantes libres por depto.</div></div>
+          <div id="dash-vac-depts"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EMPLEADOS ── -->
+    <div class="panel" id="panel-empleados">
+      <div class="toolbar">
+        <div class="view-toggle">
+          <button class="view-btn active" id="vbtn-list" onclick="setView('list')">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Lista
+          </button>
+          <button class="view-btn" id="vbtn-cards" onclick="setView('cards')">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Tarjetas
+          </button>
+        </div>
+        <select class="filter-sel" onchange="F.group=this.value;renderEmps()">
+          <option value="">Sin agrupar</option>
+          <option value="dept">Por departamento</option>
+          <option value="estado">Por estado</option>
+          <option value="categoria">Por categoría</option>
+          <option value="puesto">Por puesto</option>
+        </select>
+        <select class="filter-sel" id="fs-dept" onchange="F.dept=this.value;renderEmps()">
+          <option value="">Todos los departamentos</option>
+        </select>
+        <select class="filter-sel" id="fs-cat" onchange="F.cat=this.value;renderEmps()">
+          <option value="">Todas las categorías</option>
+        </select>
+        <select class="filter-sel" onchange="F.estado=this.value;renderEmps()">
+          <option value="">Todos los estados</option>
+          <option>Activo</option><option>Permiso</option><option>Inactivo</option>
+        </select>
+        <div class="info-chip ml-auto" id="emp-count"></div>
+        <button class="btn btn-ghost" onclick="openImport()" id="btn-import" title="Importar desde Excel">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Importar Excel
+        </button>
+      </div>
+      <div id="emp-list-view">
+        <div class="table-wrap"><table>
+          <thead><tr>
+            <th onclick="sortBy('indicativo')">Indicativo</th>
+            <th onclick="sortBy('nombre')">Empleado<span id="sk-nombre"></span></th>
+            <th onclick="sortBy('dept')">Departamento<span id="sk-dept"></span></th>
+            <th onclick="sortBy('puesto')">Puesto<span id="sk-puesto"></span></th>
+            <th onclick="sortBy('categoria')">Categoría<span id="sk-categoria"></span></th>
+            <th>Teléfono</th>
+            <th onclick="sortBy('fecha')">Fecha alta<span id="sk-fecha"></span></th>
+            <th onclick="sortBy('estado')">Estado<span id="sk-estado"></span></th>
+            <th></th>
+          </tr></thead>
+          <tbody id="emp-tbody"></tbody>
+        </table></div>
+      </div>
+      <div id="emp-cards-view" style="display:none"></div>
+    </div>
+
+    <!-- ── VACANTES ── -->
+    <div class="panel" id="panel-vacantes">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchVacTab('total')">Vista global</button>
+        <button class="tab-btn" onclick="switchVacTab('dept')">Por departamento</button>
+      </div>
+      <div class="tab-content active" id="vtab-total">
+        <div class="toolbar">
+          <select class="filter-sel" onchange="F.vac=this.value;renderVacTotal()"><option value="">Todas</option><option value="libre">Libres</option><option value="cubierta">Cubiertas</option></select>
+          <select class="filter-sel" id="vf-dept" onchange="F.vacDept=this.value;renderVacTotal()">
+            <option value="">Todos los departamentos</option>
+          </select>
+          <select class="filter-sel" id="vf-cat" onchange="F.vacCat=this.value;renderVacTotal()">
+            <option value="">Todas las categorías</option>
+          </select>
+          <div class="info-chip ml-auto" id="vac-count"></div>
+          <button class="btn btn-primary" onclick="openNewVac()" id="btn-new-vac">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva vacante
+          </button>
+        </div>
+        <div class="vac-cards-grid" id="vac-total-grid"></div>
+      </div>
+      <div class="tab-content" id="vtab-dept">
+        <div id="vac-by-dept"></div>
+      </div>
+    </div>
+
+    <!-- ── DEPARTAMENTOS ── -->
+    <div class="panel" id="panel-departamentos">
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="openNewDept()" id="btn-new-dept">
+          <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo departamento
+        </button>
+        <button class="btn btn-ghost" onclick="go('config')" id="btn-manage-cats">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Gestionar categorías
+        </button>
+      </div>
+      <div class="dept-grid" id="dept-grid"></div>
+      <div id="dept-detail"></div>
+    </div>
+
+    <!-- ── USUARIOS ── -->
+    <div class="panel" id="panel-usuarios">
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="openNewUser()">
+          <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo usuario
+        </button>
+        <div class="info-chip ml-auto" id="users-count"></div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Usuario</th><th>Nombre</th><th>Perfil</th><th>Último acceso</th><th>Estado</th><th></th></tr></thead>
+        <tbody id="users-tbody"></tbody>
+      </table></div>
+    </div>
+
+    <!-- ── CONFIGURACIÓN ── -->
+    <div class="panel" id="panel-config">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;">
+        <div>
+          <div class="section-hdr">
+            <div class="section-title">Categorías de empleados</div>
+            <button class="btn btn-primary btn-sm" onclick="openNewCat()">+ Añadir</button>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Categoría</th><th>Color</th><th></th></tr></thead>
+            <tbody id="cats-tbody"></tbody>
+          </table></div>
+        </div>
+        <div>
+          <div class="section-hdr">
+            <div class="section-title">Departamentos</div>
+            <button class="btn btn-primary btn-sm" onclick="openNewDept()">+ Añadir</button>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Nombre</th><th>Empleados</th><th>Vacantes libres</th><th></th></tr></thead>
+            <tbody id="depts-config-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ═══════════ MODALES ═══════════ -->
+
+<!-- EMPLEADO -->
+<div class="modal-overlay" id="m-emp">
+<div class="modal modal-lg">
+  <div class="modal-hdr">
+    <div class="modal-title" id="m-emp-title">Nuevo empleado</div>
+    <button class="btn btn-icon" onclick="closeM('m-emp')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="form-3col">
+    <div class="form-group"><label class="required">Indicativo</label><input id="e-ind" type="text" maxlength="5" placeholder="Ej: AG" style="text-transform:uppercase"/></div>
+    <div class="form-group"><label class="required">Nombre</label><input id="e-nom" type="text" placeholder="Nombre"/></div>
+    <div class="form-group"><label class="required">Apellidos</label><input id="e-ape" type="text" placeholder="Apellidos"/></div>
+  </div>
+  <div class="form-3col">
+    <div class="form-group"><label class="required">Email</label><input id="e-email" type="email" placeholder="email@empresa.com"/></div>
+    <div class="form-group"><label class="required">Teléfono</label><input id="e-tel" type="text" placeholder="+34 600 000 000"/></div>
+    <div class="form-group"><label>Fecha de alta</label><input id="e-fecha" type="date"/></div>
+  </div>
+  <div class="form-3col">
+    <div class="form-group"><label>Departamento</label><select id="e-dept"></select></div>
+    <div class="form-group"><label>Puesto</label><input id="e-puesto" type="text" placeholder="Puesto de trabajo"/></div>
+    <div class="form-group"><label>Categoría</label><select id="e-cat"></select></div>
+  </div>
+  <div class="form-2col">
+    <div class="form-group"><label>Estado</label>
+      <select id="e-estado"><option>Activo</option><option>Permiso</option><option>Inactivo</option></select>
+    </div>
+    <div class="form-group"><label>Notas</label><input id="e-notas" type="text" placeholder="Observaciones (opcional)"/></div>
+  </div>
+  <input type="hidden" id="e-id"/>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeM('m-emp')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveEmp()">Guardar</button>
+  </div>
+</div>
+</div>
+
+<!-- VACANTE -->
+<div class="modal-overlay" id="m-vac">
+<div class="modal">
+  <div class="modal-hdr">
+    <div class="modal-title" id="m-vac-title">Nueva vacante</div>
+    <button class="btn btn-icon" onclick="closeM('m-vac')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="form-group"><label class="required">Departamento</label><select id="v-dept"></select></div>
+  <div class="form-group"><label class="required">Puesto / Rol</label><input id="v-puesto" type="text" placeholder="Nombre del puesto"/></div>
+  <div class="form-group"><label class="required">Categoría</label><select id="v-cat"></select></div>
+  <div class="form-group"><label>Estado</label>
+    <select id="v-estado"><option value="libre">Libre</option><option value="cubierta">Cubierta</option></select>
+  </div>
+  <div class="form-group"><label>Empleado asignado (si cubierta)</label><select id="v-emp"><option value="">— Sin asignar —</option></select></div>
+  <div class="form-group"><label>Jornada</label>
+    <select id="v-jornada"><option>Completa</option><option>Parcial</option><option>Turno mañana</option><option>Turno tarde</option><option>Guardia</option></select>
+  </div>
+  <div class="form-group"><label>Notas</label><input id="v-notas" type="text" placeholder="Notas adicionales"/></div>
+  <input type="hidden" id="v-id"/>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeM('m-vac')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveVac()">Guardar</button>
+  </div>
+</div>
+</div>
+
+<!-- DEPARTAMENTO -->
+<div class="modal-overlay" id="m-dept">
+<div class="modal modal-sm">
+  <div class="modal-hdr">
+    <div class="modal-title" id="m-dept-title">Nuevo departamento</div>
+    <button class="btn btn-icon" onclick="closeM('m-dept')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="form-group"><label class="required">Nombre del departamento</label><input id="d-nombre" type="text" placeholder="Nombre"/></div>
+  <div class="form-group"><label>Color identificador</label><input id="d-color" type="color" value="#0066cc" style="height:38px;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:4px;"/></div>
+  <input type="hidden" id="d-id"/>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeM('m-dept')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveDept()">Guardar</button>
+  </div>
+</div>
+</div>
+
+<!-- CATEGORÍA -->
+<div class="modal-overlay" id="m-cat">
+<div class="modal modal-sm">
+  <div class="modal-hdr">
+    <div class="modal-title" id="m-cat-title">Nueva categoría</div>
+    <button class="btn btn-icon" onclick="closeM('m-cat')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="form-group"><label class="required">Nombre de la categoría</label><input id="c-nombre" type="text" placeholder="Ej: Senior, Junior, Manager..."/></div>
+  <div class="form-group"><label>Color</label><input id="c-color" type="color" value="#0066cc" style="height:38px;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:4px;"/></div>
+  <input type="hidden" id="c-id"/>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeM('m-cat')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveCat()">Guardar</button>
+  </div>
+</div>
+</div>
+
+<!-- USUARIO -->
+<div class="modal-overlay" id="m-user">
+<div class="modal modal-sm">
+  <div class="modal-hdr">
+    <div class="modal-title" id="m-user-title">Nuevo usuario</div>
+    <button class="btn btn-icon" onclick="closeM('m-user')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="form-group"><label class="required">Nombre para mostrar</label><input id="u-nombre" type="text" placeholder="Nombre completo"/></div>
+  <div class="form-group"><label class="required">Usuario (login)</label><input id="u-login" type="text" placeholder="usuario"/></div>
+  <div class="form-group"><label id="u-pass-label" class="required">Contraseña</label><input id="u-pass" type="password" placeholder="Mínimo 6 caracteres"/></div>
+  <div class="form-group"><label class="required">Perfil</label>
+    <select id="u-rol"><option value="consulta">Consulta</option><option value="grabacion">Grabación</option></select>
+  </div>
+  <input type="hidden" id="u-id"/>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeM('m-user')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveUser()">Guardar</button>
+  </div>
+</div>
+</div>
+
+<!-- CONFIRM DELETE -->
+<div class="modal-overlay" id="m-del">
+<div class="modal modal-sm" style="text-align:center">
+  <div style="width:46px;height:46px;border-radius:50%;background:rgba(230,57,70,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20" style="color:var(--accent3)"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+  </div>
+  <div style="font-size:16px;font-weight:600;margin-bottom:6px" id="del-title">Eliminar</div>
+  <div style="font-size:13px;color:var(--muted)" id="del-msg"></div>
+  <div class="modal-footer" style="justify-content:center">
+    <button class="btn btn-ghost" onclick="closeM('m-del')">Cancelar</button>
+    <button class="btn btn-danger" id="del-btn">Eliminar</button>
+  </div>
+</div>
+</div>
+
+<!-- IMPORT EXCEL -->
+<div class="modal-overlay" id="m-import">
+<div class="modal">
+  <div class="modal-hdr">
+    <div class="modal-title">Importar empleados desde Excel</div>
+    <button class="btn btn-icon" onclick="closeM('m-import')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:14px;background:var(--bg2);border-radius:var(--rsm);padding:12px;font-family:'IBM Plex Mono',monospace;">
+    Columnas esperadas (en orden):<br/>
+    <strong>Indicativo · Nombre · Apellido · Email · Teléfono · Puesto · Departamento · Categoría · Estado · Fecha ingreso</strong>
+  </div>
+  <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+    <div class="upload-zone-icon">📊</div>
+    <p><strong>Haz clic</strong> o arrastra tu archivo Excel aquí</p>
+    <p style="margin-top:4px;font-size:11px">Formatos: .xlsx · .xls</p>
+  </div>
+  <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])"/>
+  <div id="import-preview" style="margin-top:14px;display:none">
+    <div class="section-hdr"><div class="section-title" id="import-count"></div></div>
+    <div class="table-wrap" style="max-height:220px;overflow-y:auto"><table>
+      <thead><tr><th>Indic.</th><th>Nombre</th><th>Dept.</th><th>Cat.</th><th>Estado</th></tr></thead>
+      <tbody id="import-tbody"></tbody>
+    </table></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeM('m-import')">Cancelar</button>
+    <button class="btn btn-primary hidden" id="btn-confirm-import" onclick="confirmImport()">Importar todos</button>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════ SCRIPT ═══════════ -->
+<script>
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+const STORAGE_KEY = 'personalpro_v3';
+
+function defaultState(){
+  return {
+    setupDone: false,
+    adminUser: {user:'admin',pass:'admin',nombre:'Administrador'},
+    users: [],
+    departamentos: [
+      {id:1,nombre:'Tecnología',color:'#0066cc'},
+      {id:2,nombre:'Ventas',color:'#00a878'},
+      {id:3,nombre:'RRHH',color:'#9b5de5'},
+      {id:4,nombre:'Finanzas',color:'#f4a261'},
+      {id:5,nombre:'Operaciones',color:'#e63946'},
+    ],
+    categorias: [
+      {id:1,nombre:'Director',color:'#e63946'},
+      {id:2,nombre:'Senior',color:'#0066cc'},
+      {id:3,nombre:'Junior',color:'#00a878'},
+      {id:4,nombre:'Becario',color:'#f4a261'},
+    ],
+    empleados: [
+      {id:1,indicativo:'AG',nombre:'Ana',apellidos:'García',email:'ana.garcia@empresa.com',tel:'+34 612 345 678',puesto:'Desarrolladora',dept:1,categoria:2,estado:'Activo',fecha:'2021-03-15',notas:''},
+      {id:2,indicativo:'CM',nombre:'Carlos',apellidos:'Martínez',email:'carlos.m@empresa.com',tel:'+34 623 456 789',puesto:'Comercial',dept:2,categoria:3,estado:'Activo',fecha:'2022-07-01',notas:''},
+      {id:3,indicativo:'LS',nombre:'Laura',apellidos:'Sánchez',email:'laura.s@empresa.com',tel:'+34 634 567 890',puesto:'Resp. Selección',dept:3,categoria:2,estado:'Activo',fecha:'2020-11-20',notas:''},
+      {id:4,indicativo:'PR',nombre:'Pedro',apellidos:'Ruiz',email:'pedro.r@empresa.com',tel:'+34 645 678 901',puesto:'Contable',dept:4,categoria:2,estado:'Permiso',fecha:'2019-05-10',notas:''},
+      {id:5,indicativo:'ML',nombre:'María',apellidos:'López',email:'maria.l@empresa.com',tel:'+34 656 789 012',puesto:'UX Designer',dept:1,categoria:3,estado:'Activo',fecha:'2023-01-08',notas:''},
+      {id:6,indicativo:'JF',nombre:'Jorge',apellidos:'Fernández',email:'jorge.f@empresa.com',tel:'+34 667 890 123',puesto:'Coordinador',dept:5,categoria:2,estado:'Inactivo',fecha:'2021-09-30',notas:''},
+      {id:7,indicativo:'ST',nombre:'Sofía',apellidos:'Torres',email:'sofia.t@empresa.com',tel:'+34 678 901 234',puesto:'Key Account',dept:2,categoria:2,estado:'Activo',fecha:'2022-04-18',notas:''},
+      {id:8,indicativo:'RG',nombre:'Raúl',apellidos:'Gómez',email:'raul.g@empresa.com',tel:'+34 689 012 345',puesto:'DevOps',dept:1,categoria:2,estado:'Activo',fecha:'2023-06-12',notas:''},
+    ],
+    vacantes: [
+      {id:1,dept:1,puesto:'Backend Developer',categoria:3,estado:'libre',empId:null,jornada:'Completa',notas:''},
+      {id:2,dept:2,puesto:'Director Comercial',categoria:1,estado:'libre',empId:null,jornada:'Completa',notas:''},
+      {id:3,dept:1,puesto:'Data Analyst',categoria:3,estado:'libre',empId:null,jornada:'Parcial',notas:''},
+      {id:4,dept:1,puesto:'Desarrolladora',categoria:2,estado:'cubierta',empId:1,jornada:'Completa',notas:''},
+      {id:5,dept:2,puesto:'Comercial',categoria:3,estado:'cubierta',empId:2,jornada:'Completa',notas:''},
+    ],
+    nextEmpId: 9,
+    nextVacId: 6,
+    nextDeptId: 6,
+    nextCatId: 5,
+    nextUserId: 1,
+  };
+}
+
+let S = loadState();
+let session = null; // {user, rol, nombre}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      // merge defaults for missing keys
+      const def = defaultState();
+      return Object.assign({}, def, parsed);
+    }
+  }catch(e){}
+  return defaultState();
+}
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); }catch(e){}
+}
+
+// ─────────────────────────────────────────────
+// FILTERS / SORT
+// ─────────────────────────────────────────────
+let F = {group:'',dept:'',cat:'',estado:'',txt:'',vac:'',vacDept:'',vacCat:''};
+let sk='nombre', sd=1, view='list';
+let collapsed={};
+let curPanel='dashboard';
+let vacTab='total';
+let pendDel=null;
+let importRows=[];
+
+// ─────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────
+function initAuth(){
+  // Always show login screen; setup screen is no longer used
+}
+
+function doSetup(){
+  // Legacy — not used
+}
+
+function doLogin(){
+  const user=v('l-user').trim(), pass=v('l-pass');
+  const err=document.getElementById('login-err');
+  // Check admin
+  if(S.adminUser && S.adminUser.user===user && S.adminUser.pass===pass){
+    // First access: credentials are still the defaults admin/admin
+    if(!S.setupDone && user==='admin' && pass==='admin'){
+      // Force password change before entering
+      byId('login-screen').classList.add('hidden');
+      byId('change-pass-screen').classList.remove('hidden');
+      return;
+    }
+    session={user,rol:'admin',nombre:S.adminUser.nombre||'Administrador'};
+    startApp();return;
+  }
+  // Check other users
+  const u=S.users.find(x=>x.login===user&&x.pass===pass&&x.activo!==false);
+  if(u){session={user,rol:u.rol,nombre:u.nombre};startApp();return;}
+  err.style.display='block';
+  setTimeout(()=>err.style.display='none',3000);
+}
+
+function doChangePass(){
+  const newUser=v('cp-user').trim()||'admin';
+  const newPass=v('cp-pass'), newPass2=v('cp-pass2');
+  const newName=v('cp-name').trim()||'Administrador';
+  const err=byId('cp-err');
+  if(newPass.length<6){err.style.display='block';err.textContent='La contraseña debe tener al menos 6 caracteres.';return;}
+  if(newPass!==newPass2){err.style.display='block';err.textContent='Las contraseñas no coinciden.';return;}
+  S.adminUser={user:newUser,pass:newPass,nombre:newName};
+  S.setupDone=true;
+  save();
+  byId('change-pass-screen').classList.add('hidden');
+  session={user:newUser,rol:'admin',nombre:newName};
+  startApp();
+}
+
+function startApp(){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').style.display='flex';
+  document.getElementById('sidebar-name').textContent=session.nombre;
+  document.getElementById('sidebar-role').textContent={admin:'Administración',grabacion:'Grabación',consulta:'Consulta'}[session.rol];
+  document.getElementById('sidebar-av').textContent=session.nombre.slice(0,2).toUpperCase();
+  // Show admin nav
+  if(session.rol==='admin'){
+    document.getElementById('nav-admin-section').style.display='';
+    document.getElementById('nav-usuarios').classList.remove('hidden');
+    document.getElementById('nav-config').classList.remove('hidden');
+  }
+  // Permissions
+  const canEdit = session.rol!=='consulta';
+  const isAdmin = session.rol==='admin';
+  if(!canEdit){
+    document.getElementById('btn-new-emp').classList.add('hidden');
+    document.getElementById('btn-import').classList.add('hidden');
+    document.getElementById('btn-new-vac').classList.add('hidden');
+    document.getElementById('btn-new-dept').classList.add('hidden');
+    document.getElementById('btn-manage-cats').classList.add('hidden');
+  }
+  go('dashboard');
+}
+
+function doLogout(){
+  session=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').classList.remove('hidden');
+  s('l-user','');s('l-pass','');
+}
+
+function canEdit(){ return session&&session.rol!=='consulta'; }
+function isAdmin(){ return session&&session.rol==='admin'; }
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function v(id){ return document.getElementById(id).value; }
+function s(id,val){ document.getElementById(id).value=val; }
+function byId(id){ return document.getElementById(id); }
+function ini(ind){ return (ind||'?').slice(0,3).toUpperCase(); }
+function avCol(ind){ const c=['av0','av1','av2','av3','av4']; let h=0; for(let x of (ind||'')) h+=x.charCodeAt(0); return c[h%c.length]; }
+function fmt(d){ if(!d) return '—'; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function bc(e){ return {Activo:'badge-active',Permiso:'badge-leave',Inactivo:'badge-inactive'}[e]||''; }
+function getDept(id){ return S.departamentos.find(d=>d.id===id); }
+function getCat(id){ return S.categorias.find(c=>c.id===id); }
+function getEmp(id){ return S.empleados.find(e=>e.id===id); }
+function deptName(id){ const d=getDept(id); return d?d.nombre:'—'; }
+function catName(id){ const c=getCat(id); return c?c.nombre:'—'; }
+function deptColor(id){ const d=getDept(id); return d?d.color:'var(--muted)'; }
+function catColor(id){ const c=getCat(id); return c?c.color:'var(--muted)'; }
+
+function editIcons(editCb, delCb){
+  if(!canEdit()) return '';
+  return `<div class="row-actions">
+    <button class="btn btn-icon btn-sm" onclick="${editCb}" title="Editar">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </button>
+    <button class="btn btn-icon btn-sm del" onclick="${delCb}" title="Eliminar">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    </button>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────
+const PANELS=['dashboard','empleados','vacantes','departamentos','usuarios','config'];
+const TITLES={dashboard:'Dashboard',empleados:'Empleados',vacantes:'Vacantes',departamentos:'Departamentos',usuarios:'Gestión de usuarios',config:'Configuración'};
+
+function go(p){
+  PANELS.forEach(x=>{
+    byId('panel-'+x).classList.toggle('active',x===p);
+  });
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const idx={'dashboard':0,'empleados':1,'vacantes':2,'departamentos':3,'usuarios':4,'config':5}[p];
+  const items=document.querySelectorAll('.nav-item');
+  if(items[idx]) items[idx].classList.add('active');
+  byId('topbar-title').textContent=TITLES[p]||p;
+  curPanel=p;
+  if(p==='dashboard') renderDash();
+  if(p==='empleados') renderEmps();
+  if(p==='vacantes'){ renderVacTotal(); renderVacByDept(); }
+  if(p==='departamentos') renderDepts();
+  if(p==='usuarios') renderUsers();
+  if(p==='config'){ renderCatsConfig(); renderDeptsConfig(); }
+}
+
+function handleSearch(val){
+  F.txt=val.toLowerCase();
+  if(curPanel!=='empleados') go('empleados');
+  else renderEmps();
+}
+
+// ─────────────────────────────────────────────
+// STATS
+// ─────────────────────────────────────────────
+function updateStats(){
+  byId('s-total').textContent=S.empleados.length;
+  byId('s-activos').textContent=S.empleados.filter(e=>e.estado==='Activo').length;
+  byId('s-libres').textContent=S.vacantes.filter(v=>v.estado==='libre').length;
+  byId('s-permiso').textContent=S.empleados.filter(e=>e.estado==='Permiso').length;
+}
+
+// ─────────────────────────────────────────────
+// DASHBOARD
+// ─────────────────────────────────────────────
+function renderDash(){
+  updateStats();
+  // Recent emps
+  byId('dash-emps').innerHTML=[...S.empleados].slice(-6).reverse().map(e=>`
+    <tr><td>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="avatar av-sm ${avCol(e.indicativo)}">${ini(e.indicativo)}</span>
+        <span style="font-size:13px;font-weight:500">${e.nombre} ${e.apellidos}</span>
+      </div>
+    </td>
+    <td style="font-size:12px;color:${deptColor(e.dept)};font-weight:500">${deptName(e.dept)}</td>
+    <td><span class="badge ${bc(e.estado)}">${e.estado}</span></td></tr>`).join('');
+  // Vacantes por dept
+  const container=byId('dash-vac-depts');
+  const libres=S.vacantes.filter(v=>v.estado==='libre');
+  if(!libres.length){container.innerHTML='<div class="empty"><div class="empty-icon">✓</div>Sin vacantes libres</div>';return;}
+  const byDept={};
+  libres.forEach(v=>{if(!byDept[v.dept])byDept[v.dept]=[];byDept[v.dept].push(v);});
+  container.innerHTML=Object.keys(byDept).map(dId=>{
+    const d=getDept(parseInt(dId));if(!d) return '';
+    const vlist=byDept[dId];
+    return `<div style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:13px;font-weight:600;color:${d.color}">${d.nombre}</span>
+        <span class="badge badge-libre">${vlist.length}</span>
+      </div>
+      ${vlist.map(v=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:12px;color:var(--muted);">
+        <span style="width:6px;height:6px;border-radius:50%;background:${catColor(v.categoria)};flex-shrink:0;display:inline-block;"></span>
+        ${v.puesto} <span style="color:var(--muted2)">(${catName(v.categoria)})</span>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+// EMPLEADOS
+// ─────────────────────────────────────────────
+function filteredEmps(){
+  return S.empleados.filter(e=>{
+    if(F.dept && e.dept!==parseInt(F.dept)) return false;
+    if(F.cat && e.categoria!==parseInt(F.cat)) return false;
+    if(F.estado && e.estado!==F.estado) return false;
+    if(F.txt){
+      const q=F.txt;
+      if(![e.nombre,e.apellidos,e.puesto,deptName(e.dept),e.indicativo,e.email].some(x=>(x||'').toLowerCase().includes(q))) return false;
+    }
+    return true;
+  }).sort((a,b)=>{
+    let av=a[sk]||'',bv=b[sk]||'';
+    if(sk==='dept'){av=deptName(a.dept);bv=deptName(b.dept);}
+    if(sk==='categoria'){av=catName(a.categoria);bv=catName(b.categoria);}
+    return av<bv?-sd:av>bv?sd:0;
+  });
+}
+
+function sortBy(k){ if(sk===k) sd*=-1; else{sk=k;sd=1;} ['nombre','dept','puesto','categoria','fecha','estado'].forEach(x=>{const el=byId('sk-'+x);if(el)el.textContent=x===sk?(sd===1?' ↑':' ↓'):'';}); renderEmps(); }
+
+function empRow(e){
+  const d=getDept(e.dept), c=getCat(e.categoria);
+  return `<tr>
+    <td><span class="avatar av-sm ${avCol(e.indicativo)}" style="font-family:'IBM Plex Mono',monospace">${ini(e.indicativo)}</span></td>
+    <td><div style="display:flex;align-items:center;gap:8px;">
+      <div><div style="font-weight:500;font-size:13.5px">${e.nombre} ${e.apellidos}</div><div style="font-size:11px;color:var(--muted)">${e.email||''}</div></div>
+    </div></td>
+    <td style="color:${d?d.color:'var(--muted)'};font-weight:500">${d?d.nombre:'—'}</td>
+    <td>${e.puesto||'—'}</td>
+    <td>${c?`<span style="background:${c.color}18;color:${c.color};padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600">${c.nombre}</span>`:'—'}</td>
+    <td>${e.tel||'—'}</td>
+    <td style="font-family:'IBM Plex Mono',monospace;font-size:12px">${fmt(e.fecha)}</td>
+    <td><span class="badge ${bc(e.estado)}">${e.estado}</span></td>
+    <td>${editIcons(`openEditEmp(${e.id})`,`askDel('emp',${e.id},'${e.nombre} ${e.apellidos}')`)}</td>
+  </tr>`;
+}
+
+function empCard(e){
+  const d=getDept(e.dept),c=getCat(e.categoria);
+  return `<div class="emp-card">
+    <div class="emp-card-top">
+      <span class="avatar av-md ${avCol(e.indicativo)}" style="font-family:'IBM Plex Mono',monospace">${ini(e.indicativo)}</span>
+      <div class="emp-card-actions">
+        ${canEdit()?`<button class="btn btn-icon btn-sm" onclick="openEditEmp(${e.id})"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="btn btn-icon btn-sm del" onclick="askDel('emp',${e.id},'${e.nombre} ${e.apellidos}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>`:''}
+      </div>
+    </div>
+    <div class="emp-card-name">${e.nombre} ${e.apellidos}</div>
+    <div class="emp-card-role">${e.puesto||'—'}</div>
+    <span class="emp-card-dept" style="color:${d?d.color:'var(--muted)'}">${d?d.nombre:'—'}</span>
+    ${c?`<span style="background:${c.color}18;color:${c.color};padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;margin-left:4px">${c.nombre}</span>`:''}
+    <div class="emp-card-footer">
+      <span class="badge ${bc(e.estado)}">${e.estado}</span>
+      <span style="font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace">${e.indicativo}</span>
+    </div>
+  </div>`;
+}
+
+function grouped(list,fn){ const g={}; list.forEach(e=>{const k=fn(e);if(!g[k])g[k]=[];g[k].push(e);}); return g; }
+
+function renderEmps(){
+  // Populate filters
+  const dSel=byId('fs-dept'); dSel.innerHTML='<option value="">Todos los departamentos</option>'+S.departamentos.map(d=>`<option value="${d.id}">${d.nombre}</option>`).join('');
+  if(F.dept) dSel.value=F.dept;
+  const cSel=byId('fs-cat'); cSel.innerHTML='<option value="">Todas las categorías</option>'+S.categorias.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+  if(F.cat) cSel.value=F.cat;
+  const list=filteredEmps();
+  byId('emp-count').textContent=`${list.length} empleado${list.length!==1?'s':''}`;
+  if(view==='list'){
+    byId('emp-list-view').style.display='block';byId('emp-cards-view').style.display='none';
+    const tbody=byId('emp-tbody');
+    if(!list.length){tbody.innerHTML=`<tr class="empty-row"><td colspan="9">Sin empleados con esos filtros</td></tr>`;return;}
+    if(!F.group){tbody.innerHTML=list.map(empRow).join('');return;}
+    const gfn=F.group==='dept'?e=>deptName(e.dept):F.group==='estado'?e=>e.estado:F.group==='categoria'?e=>catName(e.categoria):e=>e.puesto;
+    const g=grouped(list,gfn);
+    tbody.innerHTML=Object.keys(g).sort().map(k=>{
+      const col=F.group==='dept'?S.departamentos.find(d=>d.nombre===k)?.color||'var(--muted)':'var(--muted)';
+      const col2=collapsed[k];
+      return `<tr class="grp-row" onclick="tog('${k.replace(/'/g,"\\'")}')"><td colspan="9"><div class="grp-inner"><span class="grp-chev${col2?' col':''}">▾</span><span style="color:${col}">${k}</span><span class="grp-count">${g[k].length}</span></div></td></tr>${col2?'':g[k].map(empRow).join('')}`;
+    }).join('');
+  } else {
+    byId('emp-list-view').style.display='none';
+    const cv=byId('emp-cards-view'); cv.style.display='block';
+    if(!list.length){cv.innerHTML=`<div class="empty"><div class="empty-icon">👤</div>Sin empleados</div>`;return;}
+    if(!F.group){cv.innerHTML=`<div class="cards-grid">${list.map(empCard).join('')}</div>`;return;}
+    const gfn=F.group==='dept'?e=>deptName(e.dept):F.group==='estado'?e=>e.estado:F.group==='categoria'?e=>catName(e.categoria):e=>e.puesto;
+    const g=grouped(list,gfn);
+    cv.innerHTML=Object.keys(g).sort().map(k=>{
+      const col=F.group==='dept'?S.departamentos.find(d=>d.nombre===k)?.color||'var(--muted)':'var(--muted)';
+      return `<div style="margin-bottom:22px"><div style="font-size:11px;font-weight:700;color:${col};text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;display:flex;align-items:center;gap:8px">${k}<span class="grp-count">${g[k].length}</span></div><div class="cards-grid">${g[k].map(empCard).join('')}</div></div>`;
+    }).join('');
+  }
+}
+
+function tog(k){collapsed[k]=!collapsed[k];renderEmps();}
+function setView(v){view=v;byId('vbtn-list').classList.toggle('active',v==='list');byId('vbtn-cards').classList.toggle('active',v==='cards');renderEmps();}
+
+// ─────────────────────────────────────────────
+// VACANTES
+// ─────────────────────────────────────────────
+function switchVacTab(t){
+  vacTab=t;
+  document.querySelectorAll('.tab-btn').forEach((el,i)=>el.classList.toggle('active',['total','dept'][i]===t));
+  byId('vtab-total').classList.toggle('active',t==='total');
+  byId('vtab-dept').classList.toggle('active',t==='dept');
+  if(t==='dept') renderVacByDept();
+}
+
+function renderVacTotal(){
+  // Populate filters
+  byId('vf-dept').innerHTML='<option value="">Todos los departamentos</option>'+S.departamentos.map(d=>`<option value="${d.id}">${d.nombre}</option>`).join('');
+  byId('vf-cat').innerHTML='<option value="">Todas las categorías</option>'+S.categorias.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+  const list=S.vacantes.filter(v=>{
+    if(F.vac && v.estado!==F.vac) return false;
+    if(F.vacDept && v.dept!==parseInt(F.vacDept)) return false;
+    if(F.vacCat && v.categoria!==parseInt(F.vacCat)) return false;
+    return true;
+  });
+  const lib=list.filter(v=>v.estado==='libre').length, cub=list.filter(v=>v.estado==='cubierta').length;
+  byId('vac-count').textContent=`${lib} libre${lib!==1?'s':''} · ${cub} cubierta${cub!==1?'s':''}`;
+  const grid=byId('vac-total-grid');
+  if(!list.length){grid.innerHTML=`<div class="empty"><div class="empty-icon">💼</div>Sin vacantes</div>`;return;}
+  grid.innerHTML=list.map(vac=>{
+    const d=getDept(vac.dept),c=getCat(vac.categoria),emp=vac.empId?getEmp(vac.empId):null;
+    return `<div class="vac-card ${vac.estado}">
+      <div class="vac-dept" style="color:${d?d.color:'var(--muted)'}">${d?d.nombre:'—'}</div>
+      <div class="vac-role">${vac.puesto}</div>
+      <div class="vac-cat">${c?`<span style="background:${c.color}18;color:${c.color};padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600">${c.nombre}</span>`:'—'}</div>
+      <div class="vac-footer">
+        <span class="badge ${vac.estado==='libre'?'badge-libre':'badge-cubierta'}">${vac.estado==='libre'?'Libre':'Cubierta'}</span>
+        ${emp?`<span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)"><span class="avatar av-sm ${avCol(emp.indicativo)}" style="width:18px;height:18px;font-size:8px">${ini(emp.indicativo)}</span>${emp.nombre}</span>`:`<span style="font-size:12px;color:var(--muted)">${vac.jornada||'Completa'}</span>`}
+      </div>
+      ${canEdit()?`<div style="display:flex;gap:4px;margin-top:10px;justify-content:flex-end">
+        <button class="btn btn-icon btn-sm" onclick="openEditVac(${vac.id})"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="btn btn-icon btn-sm del" onclick="askDel('vac',${vac.id},'${vac.puesto}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderVacByDept(){
+  const container=byId('vac-by-dept');
+  if(!S.departamentos.length){container.innerHTML='<div class="empty">Sin departamentos definidos</div>';return;}
+  container.innerHTML=S.departamentos.map(dept=>{
+    const vlist=S.vacantes.filter(v=>v.dept===dept.id);
+    const libres=vlist.filter(v=>v.estado==='libre').length;
+    const total=vlist.length;
+    const pct=total?Math.round(libres/total*100):0;
+    return `<div class="vac-dept-section">
+      <div class="vac-dept-hdr" style="border-left:3px solid ${dept.color}">
+        <div class="vac-dept-hdr-title" style="color:${dept.color}">${dept.nombre}</div>
+        <span class="badge badge-libre">${libres} libre${libres!==1?'s':''}</span>
+        <span style="font-size:12px;color:var(--muted)">${total} total</span>
+        <div class="ml-auto" style="width:120px">
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${dept.color}"></div></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;text-align:right">${pct}% libres</div>
+        </div>
+      </div>
+      <div class="vac-dept-body">
+        ${vlist.length?`<table style="width:100%;border-collapse:collapse">
+          <thead><tr style="background:var(--surface2);border-bottom:1px solid var(--border)"><th style="padding:8px 14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Puesto</th><th style="padding:8px 14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase">Categoría</th><th style="padding:8px 14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase">Estado</th><th style="padding:8px 14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase">Empleado</th><th style="padding:8px 14px"></th></tr></thead>
+          <tbody>${vlist.map(vac=>{
+            const c=getCat(vac.categoria),emp=vac.empId?getEmp(vac.empId):null;
+            return `<tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:9px 14px;font-size:13px;font-weight:500">${vac.puesto}</td>
+              <td style="padding:9px 14px">${c?`<span style="background:${c.color}18;color:${c.color};padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600">${c.nombre}</span>`:'—'}</td>
+              <td style="padding:9px 14px"><span class="badge ${vac.estado==='libre'?'badge-libre':'badge-cubierta'}">${vac.estado==='libre'?'Libre':'Cubierta'}</span></td>
+              <td style="padding:9px 14px;font-size:12px;color:var(--muted)">${emp?emp.nombre+' '+emp.apellidos:'—'}</td>
+              <td style="padding:9px 14px">${canEdit()?`<div style="display:flex;gap:4px">
+                <button class="btn btn-icon btn-sm" onclick="openEditVac(${vac.id})"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="btn btn-icon btn-sm del" onclick="askDel('vac',${vac.id},'${vac.puesto}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/></svg></button>
+              </div>`:''}
+              </td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>`:`<div class="empty" style="padding:24px">Sin vacantes en este departamento</div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+// DEPARTAMENTOS
+// ─────────────────────────────────────────────
+function renderDepts(){
+  byId('dept-grid').innerHTML=S.departamentos.map(dept=>{
+    const total=S.empleados.filter(e=>e.dept===dept.id).length;
+    const libres=S.vacantes.filter(v=>v.dept===dept.id&&v.estado==='libre').length;
+    return `<div class="dept-card" style="border-top:3px solid ${dept.color}" onclick="drillDept(${dept.id})">
+      ${canEdit()?`<div class="dept-card-actions">
+        <button class="btn btn-icon btn-sm" onclick="event.stopPropagation();openEditDept(${dept.id})"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="btn btn-icon btn-sm del" onclick="event.stopPropagation();askDel('dept',${dept.id},'${dept.nombre}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/></svg></button>
+      </div>`:''}
+      <div class="dept-card-name" style="color:${dept.color}">${dept.nombre}</div>
+      <div class="dept-card-val">${total}</div>
+      <div class="dept-card-sub">${libres} vacante${libres!==1?'s':''} libre${libres!==1?'s':''}</div>
+    </div>`;
+  }).join('');
+  byId('dept-detail').innerHTML='';
+}
+
+function drillDept(id){
+  const dept=getDept(id); if(!dept) return;
+  const emps=S.empleados.filter(e=>e.dept===id);
+  byId('dept-detail').innerHTML=`
+    <div style="margin-top:20px">
+      <div class="section-hdr">
+        <div class="section-title" style="color:${dept.color}">${dept.nombre} — ${emps.length} empleado${emps.length!==1?'s':''}</div>
+        <button class="btn btn-ghost btn-sm" onclick="byId('dept-detail').innerHTML=''">Cerrar</button>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Indicativo</th><th>Empleado</th><th>Puesto</th><th>Categoría</th><th>Estado</th><th></th></tr></thead>
+        <tbody>${emps.map(e=>{const c=getCat(e.categoria);return`<tr>
+          <td><span class="avatar av-sm ${avCol(e.indicativo)}">${ini(e.indicativo)}</span></td>
+          <td style="font-weight:500">${e.nombre} ${e.apellidos}</td>
+          <td>${e.puesto||'—'}</td>
+          <td>${c?`<span style="background:${c.color}18;color:${c.color};padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600">${c.nombre}</span>`:'—'}</td>
+          <td><span class="badge ${bc(e.estado)}">${e.estado}</span></td>
+          <td>${editIcons(`openEditEmp(${e.id})`,`askDel('emp',${e.id},'${e.nombre} ${e.apellidos}')`)}</td>
+        </tr>`;}).join('')}</tbody>
+      </table></div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────
+function renderCatsConfig(){
+  byId('cats-tbody').innerHTML=S.categorias.map(c=>`<tr>
+    <td><span style="background:${c.color}18;color:${c.color};padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600">${c.nombre}</span></td>
+    <td><span style="width:20px;height:20px;border-radius:4px;background:${c.color};display:inline-block;vertical-align:middle"></span></td>
+    <td>${editIcons(`openEditCat(${c.id})`,`askDel('cat',${c.id},'${c.nombre}')`)}</td>
+  </tr>`).join('');
+}
+
+function renderDeptsConfig(){
+  byId('depts-config-tbody').innerHTML=S.departamentos.map(d=>{
+    const emps=S.empleados.filter(e=>e.dept===d.id).length;
+    const libres=S.vacantes.filter(v=>v.dept===d.id&&v.estado==='libre').length;
+    return `<tr>
+      <td><span style="color:${d.color};font-weight:600">${d.nombre}</span></td>
+      <td>${emps}</td><td>${libres}</td>
+      <td>${editIcons(`openEditDept(${d.id})`,`askDel('dept',${d.id},'${d.nombre}')`)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+// USERS
+// ─────────────────────────────────────────────
+function renderUsers(){
+  byId('users-count').textContent=`${S.users.length+1} usuario${S.users.length+1!==1?'s':''}`;
+  const rolLabel={admin:'Administración',grabacion:'Grabación',consulta:'Consulta'};
+  const rolBadge={admin:'badge-admin',grabacion:'badge-grabacion',consulta:'badge-consulta'};
+  // Admin row (fixed)
+  let html=`<tr>
+    <td><span class="mono">${S.adminUser?.user||'admin'}</span></td>
+    <td>${S.adminUser?.nombre||'Administrador'}</td>
+    <td><span class="badge badge-admin">Administración</span></td>
+    <td style="font-size:12px;color:var(--muted)">Sesión activa</td>
+    <td><span class="badge badge-active">Activo</span></td>
+    <td><span style="font-size:11px;color:var(--muted)">Cuenta principal</span></td>
+  </tr>`;
+  html+=S.users.map(u=>`<tr>
+    <td><span class="mono">${u.login}</span></td>
+    <td>${u.nombre}</td>
+    <td><span class="badge ${rolBadge[u.rol]||''}">${rolLabel[u.rol]||u.rol}</span></td>
+    <td style="font-size:12px;color:var(--muted)">—</td>
+    <td><span class="badge ${u.activo===false?'badge-inactive':'badge-active'}">${u.activo===false?'Inactivo':'Activo'}</span></td>
+    <td><div class="row-actions" style="opacity:1">
+      <button class="btn btn-icon btn-sm" onclick="openEditUser(${u.id})" title="Editar"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+      <button class="btn btn-icon btn-sm del" onclick="askDel('user',${u.id},'${u.nombre}')" title="Eliminar"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/></svg></button>
+    </div></td>
+  </tr>`).join('');
+  byId('users-tbody').innerHTML=html;
+}
+
+// ─────────────────────────────────────────────
+// OPEN MODALS
+// ─────────────────────────────────────────────
+function populateDeptSels(){
+  const opts='<option value="">— Selecciona —</option>'+S.departamentos.map(d=>`<option value="${d.id}">${d.nombre}</option>`).join('');
+  ['e-dept','v-dept'].forEach(id=>{if(byId(id))byId(id).innerHTML=opts;});
+}
+function populateCatSels(){
+  const opts='<option value="">— Selecciona —</option>'+S.categorias.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+  ['e-cat','v-cat'].forEach(id=>{if(byId(id))byId(id).innerHTML=opts;});
+}
+function populateEmpSel(){
+  byId('v-emp').innerHTML='<option value="">— Sin asignar —</option>'+S.empleados.map(e=>`<option value="${e.id}">${e.indicativo} — ${e.nombre} ${e.apellidos}</option>`).join('');
+}
+
+function openNewEmp(){
+  if(!canEdit()){toast('Sin permisos de edición','err');return;}
+  populateDeptSels();populateCatSels();
+  ['e-ind','e-nom','e-ape','e-email','e-tel','e-puesto','e-notas'].forEach(id=>s(id,''));
+  s('e-fecha',new Date().toISOString().split('T')[0]);
+  s('e-estado','Activo');s('e-id','');
+  byId('m-emp-title').textContent='Nuevo empleado';
+  byId('m-emp').classList.add('open');
+}
+
+function openEditEmp(id){
+  if(!canEdit()){toast('Sin permisos de edición','err');return;}
+  const e=getEmp(id);if(!e)return;
+  populateDeptSels();populateCatSels();
+  s('e-ind',e.indicativo||'');s('e-nom',e.nombre||'');s('e-ape',e.apellidos||'');
+  s('e-email',e.email||'');s('e-tel',e.tel||'');s('e-puesto',e.puesto||'');
+  s('e-fecha',e.fecha||'');s('e-estado',e.estado||'Activo');
+  s('e-notas',e.notas||'');s('e-id',e.id);
+  byId('e-dept').value=e.dept||'';byId('e-cat').value=e.categoria||'';
+  byId('m-emp-title').textContent='Editar empleado';
+  byId('m-emp').classList.add('open');
+}
+
+function saveEmp(){
+  const ind=v('e-ind').trim().toUpperCase(),nom=v('e-nom').trim(),ape=v('e-ape').trim(),email=v('e-email').trim(),tel=v('e-tel').trim();
+  if(!ind||!nom||!ape||!email||!tel){toast('Indicativo, nombre, apellidos, email y teléfono son obligatorios','err');return;}
+  const eid=parseInt(v('e-id'))||0;
+  const emp={id:eid||S.nextEmpId++,indicativo:ind,nombre:nom,apellidos:ape,email,tel,puesto:v('e-puesto').trim(),dept:parseInt(v('e-dept'))||null,categoria:parseInt(v('e-cat'))||null,estado:v('e-estado'),fecha:v('e-fecha'),notas:v('e-notas').trim()};
+  if(eid) S.empleados=S.empleados.map(e=>e.id===eid?emp:e);
+  else S.empleados.push(emp);
+  save();closeM('m-emp');renderEmps();renderDash();updateStats();
+  toast(eid?'Empleado actualizado':'Empleado registrado','ok');
+}
+
+function openNewVac(){
+  if(!canEdit()){toast('Sin permisos de edición','err');return;}
+  populateDeptSels();populateCatSels();populateEmpSel();
+  ['v-puesto','v-notas'].forEach(id=>s(id,''));
+  s('v-estado','libre');s('v-jornada','Completa');s('v-id','');s('v-emp','');
+  byId('m-vac-title').textContent='Nueva vacante';
+  byId('m-vac').classList.add('open');
+}
+
+function openEditVac(id){
+  if(!canEdit()){toast('Sin permisos de edición','err');return;}
+  const vac=S.vacantes.find(x=>x.id===id);if(!vac)return;
+  populateDeptSels();populateCatSels();populateEmpSel();
+  s('v-puesto',vac.puesto||'');s('v-notas',vac.notas||'');s('v-estado',vac.estado);
+  s('v-jornada',vac.jornada||'Completa');s('v-id',vac.id);s('v-emp',vac.empId||'');
+  byId('v-dept').value=vac.dept||'';byId('v-cat').value=vac.categoria||'';
+  byId('m-vac-title').textContent='Editar vacante';
+  byId('m-vac').classList.add('open');
+}
+
+function saveVac(){
+  const psto=v('v-puesto').trim(),dept=parseInt(v('v-dept')),cat=parseInt(v('v-cat'));
+  if(!psto||!dept||!cat){toast('Puesto, departamento y categoría son obligatorios','err');return;}
+  const vid=parseInt(v('v-id'))||0;
+  const vac={id:vid||S.nextVacId++,puesto:psto,dept,categoria:cat,estado:v('v-estado'),empId:parseInt(v('v-emp'))||null,jornada:v('v-jornada'),notas:v('v-notas').trim()};
+  if(vid) S.vacantes=S.vacantes.map(x=>x.id===vid?vac:x);
+  else S.vacantes.push(vac);
+  save();closeM('m-vac');renderVacTotal();renderVacByDept();renderDash();updateStats();
+  toast(vid?'Vacante actualizada':'Vacante creada','ok');
+}
+
+function openNewDept(){
+  if(!canEdit()){toast('Sin permisos de edición','err');return;}
+  s('d-nombre','');byId('d-color').value='#0066cc';s('d-id','');
+  byId('m-dept-title').textContent='Nuevo departamento';
+  byId('m-dept').classList.add('open');
+}
+
+function openEditDept(id){
+  if(!canEdit()){toast('Sin permisos de edición','err');return;}
+  const d=getDept(id);if(!d)return;
+  s('d-nombre',d.nombre);byId('d-color').value=d.color||'#0066cc';s('d-id',d.id);
+  byId('m-dept-title').textContent='Editar departamento';
+  byId('m-dept').classList.add('open');
+}
+
+function saveDept(){
+  const nombre=v('d-nombre').trim(),color=v('d-color');
+  if(!nombre){toast('Nombre obligatorio','err');return;}
+  const did=parseInt(v('d-id'))||0;
+  if(did) S.departamentos=S.departamentos.map(d=>d.id===did?{...d,nombre,color}:d);
+  else S.departamentos.push({id:S.nextDeptId++,nombre,color});
+  save();closeM('m-dept');renderDepts();renderDeptsConfig();
+  toast(did?'Departamento actualizado':'Departamento creado','ok');
+}
+
+function openNewCat(){
+  if(!canEdit()){toast('Sin permisos de edición','err');return;}
+  s('c-nombre','');byId('c-color').value='#0066cc';s('c-id','');
+  byId('m-cat-title').textContent='Nueva categoría';
+  byId('m-cat').classList.add('open');
+}
+
+function openEditCat(id){
+  if(!canEdit()){toast('Sin permisos de edición','err');return;}
+  const c=getCat(id);if(!c)return;
+  s('c-nombre',c.nombre);byId('c-color').value=c.color||'#0066cc';s('c-id',c.id);
+  byId('m-cat-title').textContent='Editar categoría';
+  byId('m-cat').classList.add('open');
+}
+
+function saveCat(){
+  const nombre=v('c-nombre').trim(),color=v('c-color');
+  if(!nombre){toast('Nombre obligatorio','err');return;}
+  const cid=parseInt(v('c-id'))||0;
+  if(cid) S.categorias=S.categorias.map(c=>c.id===cid?{...c,nombre,color}:c);
+  else S.categorias.push({id:S.nextCatId++,nombre,color});
+  save();closeM('m-cat');renderCatsConfig();
+  toast(cid?'Categoría actualizada':'Categoría creada','ok');
+}
+
+function openNewUser(){
+  s('u-nombre','');s('u-login','');s('u-pass','');s('u-rol','consulta');s('u-id','');
+  byId('m-user-title').textContent='Nuevo usuario';
+  byId('u-pass-label').classList.add('required');
+  byId('u-pass').required=true;
+  byId('m-user').classList.add('open');
+}
+
+function openEditUser(id){
+  const u=S.users.find(x=>x.id===id);if(!u)return;
+  s('u-nombre',u.nombre);s('u-login',u.login);s('u-pass','');s('u-rol',u.rol);s('u-id',u.id);
+  byId('m-user-title').textContent='Editar usuario';
+  byId('u-pass-label').classList.remove('required');
+  byId('m-user').classList.add('open');
+}
+
+function saveUser(){
+  const nombre=v('u-nombre').trim(),login=v('u-login').trim(),pass=v('u-pass'),rol=v('u-rol');
+  const uid=parseInt(v('u-id'))||0;
+  if(!nombre||!login){toast('Nombre y usuario obligatorios','err');return;}
+  if(!uid&&pass.length<6){toast('La contraseña debe tener al menos 6 caracteres','err');return;}
+  if(uid){
+    S.users=S.users.map(u=>u.id===uid?{...u,nombre,login,rol,...(pass?{pass}:{})}:u);
+  } else {
+    if(S.users.find(u=>u.login===login)||login===S.adminUser?.user){toast('Ese nombre de usuario ya existe','err');return;}
+    S.users.push({id:S.nextUserId++,nombre,login,pass,rol,activo:true});
+  }
+  save();closeM('m-user');renderUsers();
+  toast(uid?'Usuario actualizado':'Usuario creado','ok');
+}
+
+// ─────────────────────────────────────────────
+// DELETE
+// ─────────────────────────────────────────────
+function askDel(type,id,label){
+  if(!canEdit()){toast('Sin permisos de edición','err');return;}
+  pendDel={type,id};
+  byId('del-title').textContent='Eliminar '+{emp:'empleado',vac:'vacante',dept:'departamento',cat:'categoría',user:'usuario'}[type];
+  byId('del-msg').textContent=`¿Eliminar "${label}"? Esta acción no se puede deshacer.`;
+  byId('del-btn').onclick=doDel;
+  byId('m-del').classList.add('open');
+}
+
+function doDel(){
+  const {type,id}=pendDel;
+  if(type==='emp'){S.empleados=S.empleados.filter(e=>e.id!==id);}
+  if(type==='vac'){S.vacantes=S.vacantes.filter(v=>v.id!==id);}
+  if(type==='dept'){
+    S.departamentos=S.departamentos.filter(d=>d.id!==id);
+    S.empleados=S.empleados.map(e=>e.dept===id?{...e,dept:null}:e);
+    S.vacantes=S.vacantes.filter(v=>v.dept!==id);
+  }
+  if(type==='cat'){
+    S.categorias=S.categorias.filter(c=>c.id!==id);
+    S.empleados=S.empleados.map(e=>e.categoria===id?{...e,categoria:null}:e);
+    S.vacantes=S.vacantes.filter(v=>v.categoria!==id);
+  }
+  if(type==='user'){S.users=S.users.filter(u=>u.id!==id);}
+  save();closeM('m-del');
+  if(type==='emp'){renderEmps();renderDash();updateStats();}
+  if(type==='vac'){renderVacTotal();renderVacByDept();renderDash();updateStats();}
+  if(type==='dept'){renderDepts();renderDeptsConfig();}
+  if(type==='cat'){renderCatsConfig();}
+  if(type==='user'){renderUsers();}
+  toast('Eliminado correctamente','ok');
+}
+
+// ─────────────────────────────────────────────
+// EXCEL IMPORT
+// ─────────────────────────────────────────────
+function openImport(){
+  if(!canEdit()){toast('Sin permisos de edición','err');return;}
+  importRows=[];
+  byId('import-preview').style.display='none';
+  byId('btn-confirm-import').classList.add('hidden');
+  byId('file-input').value='';
+  byId('m-import').classList.add('open');
+}
+
+function handleDrop(e){
+  e.preventDefault();byId('upload-zone').classList.remove('drag');
+  const file=e.dataTransfer.files[0];
+  if(file) handleFile(file);
+}
+
+function handleFile(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'binary'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      // skip header row
+      const data=rows.slice(1).filter(r=>r.some(c=>c!==''));
+      importRows=data.map((r,i)=>({
+        indicativo:(r[0]||'').toString().trim().toUpperCase().slice(0,5),
+        nombre:(r[1]||'').toString().trim(),
+        apellidos:(r[2]||'').toString().trim(),
+        email:(r[3]||'').toString().trim(),
+        tel:(r[4]||'').toString().trim(),
+        puesto:(r[5]||'').toString().trim(),
+        deptNombre:(r[6]||'').toString().trim(),
+        catNombre:(r[7]||'').toString().trim(),
+        estado:(r[8]||'Activo').toString().trim(),
+        fecha:(r[9]||'').toString().trim(),
+      })).filter(r=>r.nombre&&r.apellidos&&r.indicativo);
+      byId('import-count').textContent=`${importRows.length} filas válidas encontradas`;
+      byId('import-tbody').innerHTML=importRows.slice(0,20).map(r=>`<tr>
+        <td><span class="avatar av-sm ${avCol(r.indicativo)}">${ini(r.indicativo)}</span></td>
+        <td>${r.nombre} ${r.apellidos}</td>
+        <td>${r.deptNombre||'—'}</td>
+        <td>${r.catNombre||'—'}</td>
+        <td><span class="badge ${bc(r.estado)||'badge-active'}">${r.estado||'Activo'}</span></td>
+      </tr>`).join('');
+      if(importRows.length>20) byId('import-tbody').innerHTML+=`<tr><td colspan="5" style="text-align:center;color:var(--muted);font-size:12px">... y ${importRows.length-20} filas más</td></tr>`;
+      byId('import-preview').style.display='block';
+      byId('btn-confirm-import').classList.remove('hidden');
+    }catch(err){toast('Error leyendo el archivo. Asegúrate de que es un .xlsx válido.','err');}
+  };
+  reader.readAsBinaryString(file);
+}
+
+function confirmImport(){
+  let added=0,skipped=0;
+  importRows.forEach(r=>{
+    if(!r.nombre||!r.indicativo){skipped++;return;}
+    // Resolve dept
+    let dept=S.departamentos.find(d=>d.nombre.toLowerCase()===r.deptNombre.toLowerCase());
+    if(!dept&&r.deptNombre){dept={id:S.nextDeptId++,nombre:r.deptNombre,color:'#0066cc'};S.departamentos.push(dept);}
+    // Resolve cat
+    let cat=S.categorias.find(c=>c.nombre.toLowerCase()===r.catNombre.toLowerCase());
+    if(!cat&&r.catNombre){cat={id:S.nextCatId++,nombre:r.catNombre,color:'#0066cc'};S.categorias.push(cat);}
+    // Parse fecha
+    let fecha='';
+    if(r.fecha){
+      try{
+        if(typeof r.fecha==='number'){const d=XLSX.SSF.parse_date_code(r.fecha);fecha=`${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;}
+        else fecha=r.fecha;
+      }catch(e){fecha=r.fecha;}
+    }
+    S.empleados.push({id:S.nextEmpId++,indicativo:r.indicativo,nombre:r.nombre,apellidos:r.apellidos,email:r.email,tel:r.tel,puesto:r.puesto,dept:dept?dept.id:null,categoria:cat?cat.id:null,estado:r.estado||'Activo',fecha,notas:''});
+    added++;
+  });
+  save();closeM('m-import');renderEmps();renderDash();updateStats();
+  toast(`${added} empleados importados${skipped?`, ${skipped} omitidos`:''}`, 'ok');
+}
+
+// ─────────────────────────────────────────────
+// MODAL UTILS
+// ─────────────────────────────────────────────
+function closeM(id){ byId(id).classList.remove('open'); }
+function openM(id){ byId(id).classList.add('open'); }
+
+// ─────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────
+function toast(msg,type='ok'){
+  const t=byId('toast');
+  t.textContent=msg;t.className=`toast ${type}`;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ─────────────────────────────────────────────
+// CLOSE MODAL ON OVERLAY CLICK
+// ─────────────────────────────────────────────
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el) el.classList.remove('open');});
+});
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+initAuth();
+</script>
+</body>
+</html>
